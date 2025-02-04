@@ -4,7 +4,7 @@ dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export async function analyzeAndRoastGymPhoto(
+export async function analyzeGymPhoto(
   photoBuffer: Buffer,
   username: string,
 ): Promise<[boolean, string]> {
@@ -15,14 +15,14 @@ export async function analyzeAndRoastGymPhoto(
       messages: [
         {
           role: "system",
-          content: `You're a very snarky, witty Bhai Cabal activity tracker analyzing gym photos. Your job is to badly roast users be cheeky, and more insulting and don't be cringe!. For valid gym pics (must show workout equipment, exercise in progress, or post-workout flexing), start with 'GYM PIC:' then give an ultra-short, roast (max 20 words). For non-gym pics, start with 'NOT GYM:' then provide a short, sarcastic callout for trying to trick the bot (max 15 words).`,
+          content: `You're a supportive and motivating Bhai Cabal activity tracker analyzing gym photos. You embody the core Bhai values of authenticity, courage, honor, and strength. Your responses should inspire and uplift while acknowledging the effort and commitment shown. For valid gym pics (must show workout equipment, exercise in progress, or post-workout), start with 'GYM PIC:' then give an encouraging response that recognizes their dedication to physical strength (max 20 words). For non-gym pics, start with 'NOT GYM:' then provide gentle guidance back to the path of strength and commitment (max 15 words).`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Analyze this image. Is it a gym pic? Respond with the appropriate prefix (GYM PIC: or NOT GYM:) followed by your witty, roast comment be cheeky, and more insulting and don't be cringe!",
+              text: "Analyze this image. Is it a gym pic? Respond with the appropriate prefix ('GYM PIC:' or 'NOT GYM:') followed by your motivating message that reflects Bhai values.",
             },
             {
               type: "image_url",
@@ -42,9 +42,9 @@ export async function analyzeAndRoastGymPhoto(
       const comment = answer.substring(answer.indexOf(":") + 1).trim();
       let finalResponse: string;
       if (isGymPhoto) {
-        finalResponse = `Hey ${username}! ${comment} Pump counted, keep crushing it! 💪📸`;
+        finalResponse = `Respect, ${username}! ${comment} Your commitment to strength inspires the cabal! 💪🔱`;
       } else {
-        finalResponse = `Nice try, ${username}! ${comment} No gains for you this time! 😜`;
+        finalResponse = `${username}, ${comment} The path of strength awaits - we believe in you! 🏋️‍♂️✨`;
       }
       return [isGymPhoto, finalResponse];
     }
@@ -55,7 +55,7 @@ export async function analyzeAndRoastGymPhoto(
   }
 }
 
-export async function analyzeAndRoastShippingPhoto(
+export async function analyzeShippingPhoto(
   photoBuffer: Buffer,
   username: string,
 ): Promise<[boolean, string]> {
@@ -66,29 +66,23 @@ export async function analyzeAndRoastShippingPhoto(
       messages: [
         {
           role: "system",
-          content: `
-You're a very sassy, witty Bhai Cabal activity tracker analyzing photos of work progress. Your job is to badly roast the users be cheeky and more insulting and don't be cringe. For valid shipping pics, start with 'SHIPPING PIC:' then give an ultra-short, roast (max 10 words). For non-shipping pics, start with 'NOT SHIPPING:' then provide a short, sarcastic callout for trying to trick the bot (max 15 words).
+          content: `You're an encouraging Bhai Cabal activity tracker analyzing work progress. You recognize that Bhais are ambitious and take individual responsibility. For valid shipping pics (showing code, presentations, documentation, meetings, or other productive work), start with 'SHIPPING PIC:' then give an uplifting response that acknowledges their contribution and ambition (max 20 words). For non-shipping pics, start with 'NOT SHIPPING:' then provide constructive guidance aligned with Bhai values (max 15 words).
 
 Valid shipping pics include:
-1. Computer screens showing code or development environments
-2. Presentations or slide decks (on screen or projected)
-3. Spreadsheets or data analysis tools (e.g., Excel, Google Sheets)
-4. Design tools (e.g., Figma, Photoshop)
-5. Project management tools or kanban boards
-6. Whiteboards or mind maps with work-related content
-7. Documentation or report writing
-8. People presenting or giving workshops (even without visible slides)
-9. Group discussions or meetings in a work setting
-10. Any other visible evidence of productive work or project progress
+1. Computer screens showing code or development work
+2. Presentations or project discussions
+3. Documentation or planning work
+4. Team meetings and collaborations
+5. Any evidence of productive contribution
 
-The image should show clear evidence of work being done, presented, or discussed. People presenting to an audience or leading a workshop count as valid shipping pics, even if you can't see their slides. If in doubt, lean towards accepting it as a shipping pic, but roast them harder for borderline cases.`,
+The focus is on recognizing authentic effort and encouraging continued growth.`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Analyze this image. Is it a valid shipping pic showing work progress, including people presenting or giving workshops? Respond with the appropriate prefix (SHIPPING PIC: or NOT SHIPPING:) followed by your witty, roast comment cheeky, and more insulting and don't be cringe!",
+              text: "Analyze this image. Is it a valid shipping pic showing work progress? Respond with the appropriate prefix ('SHIPPING PIC:' or 'NOT SHIPPING:') followed by your encouraging message that reflects Bhai values.",
             },
             {
               type: "image_url",
@@ -108,9 +102,9 @@ The image should show clear evidence of work being done, presented, or discussed
       const comment = answer.substring(answer.indexOf(":") + 1).trim();
       let finalResponse: string;
       if (isShippingPhoto) {
-        finalResponse = `Well, well, ${username}! ${comment} Ship logged, you absolute workaholic. Try not to strain yourself! 🚢💪`;
+        finalResponse = `Excellent work, ${username}! ${comment} Your contribution strengthens the cabal! 🚢✨`;
       } else {
-        finalResponse = `Nice try, ${username}! ${comment} Your "work" isn't fooling anyone, you procrastination pro! 🏴‍☠️🦥`;
+        finalResponse = `${username}, ${comment} Every Bhai has the potential to create value - show us your progress! 💫`;
       }
       return [isShippingPhoto, finalResponse];
     }
@@ -121,7 +115,7 @@ The image should show clear evidence of work being done, presented, or discussed
   }
 }
 
-export async function analyzeAndRoastMindfulnessPhoto(
+export async function analyzeMindfulnessPhoto(
   photoBuffer: Buffer,
   username: string,
 ): Promise<[boolean, string]> {
@@ -132,14 +126,14 @@ export async function analyzeAndRoastMindfulnessPhoto(
       messages: [
         {
           role: "system",
-          content: `You're a witty Bhai Cabal activity tracker analyzing mindfulness photos. Your job is to badly roast users be cheeky, humorous and more insulting and don't be cringe. For valid mindfulness pics (showing meditation, yoga, tai chi, or any mindfulness practice), start with 'ZEN PIC:' then give an ultra-short, roast (max 11 words). For non-mindfulness pics, start with 'NOT ZEN:' then provide a short, sarcastic callout for trying to trick the bot (max 15 words).`,
+          content: `You're a mindful Bhai Cabal activity tracker analyzing spiritual growth photos. You understand that Bhais get stronger spiritually as well as physically. For valid mindfulness pics (showing meditation, yoga, or other mindful practices), start with 'ZEN PIC:' then give an appreciative response that honors their spiritual journey (max 20 words). For non-mindfulness pics, start with 'NOT ZEN:' then provide gentle guidance toward spiritual growth (max 15 words).`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Analyze this image. Is it a mindfulness pic? Respond with the appropriate prefix (ZEN PIC: or NOT ZEN:) followed by your witty, roast comment be cheeky, humorous and more insulting and don't be cringe",
+              text: "Analyze this image. Is it a mindfulness pic? Respond with the appropriate prefix followed by your mindful message that reflects Bhai values.",
             },
             {
               type: "image_url",
@@ -159,9 +153,9 @@ export async function analyzeAndRoastMindfulnessPhoto(
       const comment = answer.substring(answer.indexOf(":") + 1).trim();
       let finalResponse: string;
       if (isZenPhoto) {
-        finalResponse = `Hey ${username}! ${comment} Zen moment logged, keep finding that inner peace! 🧘‍♂️✨`;
+        finalResponse = `Inner peace, ${username}! ${comment} Your spiritual strength enriches the cabal! 🧘‍♂️✨`;
       } else {
-        finalResponse = `Nice try, ${username}! ${comment} No enlightenment for you this time! 😜🍃`;
+        finalResponse = `${username}, ${comment} The path to spiritual strength awaits your presence! 🌟`;
       }
       return [isZenPhoto, finalResponse];
     }
@@ -172,9 +166,9 @@ export async function analyzeAndRoastMindfulnessPhoto(
   }
 }
 
-export async function generateRoast(
+export async function provideFeedback(
   photoBuffer: Buffer,
-  roastTarget: "photo_sender" | "command_sender",
+  feedbackType: "photo_feedback" | "community_feedback",
 ): Promise<string> {
   try {
     const base64Image = photoBuffer.toString("base64");
@@ -183,20 +177,19 @@ export async function generateRoast(
       messages: [
         {
           role: "system",
-          content: `You are Bhai Cabal bot, a BRUTALLY savage Demo day judge who's perpetually unimpressed and loves creating dramatic moments, you love flimming short episodes for reality show . You're known for your absolutely devastating roasts that hit right where it hurts, but always with a twisted sense of humor. You're like Simon Cowell meets Regina George - your roasts are legendary and leave emotional damage.
-
-Your roasting style:
-- Brutally honest and highly specific
-- Uses creative, unexpected metaphors
-- Delivers emotional damage with a smile
-- Always ends with a backhanded suggestion to be productive
+          content: `You are the Bhai Cabal bot, embodying the values of authenticity, courage, honor, and strength. You provide constructive feedback that uplifts while encouraging growth. Your responses should:
+- Be authentic and direct
+- Acknowledge effort and commitment
+- Encourage continuous improvement
+- Foster community spirit
+- Maintain honor and respect
 
 Rules:
 - Maximum 30 words
-- Must be SAVAGE and PERSONAL - make it hurt!
-- Include at least one creative metaphor
-- End with a sarcastic push toward productivity
-- Keep it witty but BRUTAL`,
+- Must be constructive and specific
+- Include actionable guidance
+- Focus on growth and improvement
+- Maintain the spirit of brotherhood`,
         },
         {
           role: "user",
@@ -204,9 +197,9 @@ Rules:
             {
               type: "text",
               text:
-                roastTarget === "photo_sender"
-                  ? "Roast this photo's content and the person who posted it. Be BRUTALLY savage about what you see, then end with a backhanded suggestion about their upcoming demo day presentation, gym workout, or meditation practice. Make them feel the burn while pushing them to improve."
-                  : "SAVAGELY roast this wannabe critic who's trying to use your roasting powers. Mock their desperate attempt to roast others when they should be working on themselves. End with a brutal suggestion that they focus on their demo day presentation, gym routine, or meditation practice instead of trying to be you.",
+                feedbackType === "photo_feedback"
+                  ? "Provide constructive feedback on this contribution, acknowledging the effort while suggesting ways to align even more closely with Bhai values."
+                  : "Offer guidance on how this activity could better serve the community's growth and strengthen our collective bond.",
             },
             {
               type: "image_url",
@@ -217,28 +210,22 @@ Rules:
             },
           ],
         },
-        {
-          role: "assistant",
-          content:
-            roastTarget === "photo_sender"
-              ? "Example roast style: 'This photo has the same energy as a potato trying to win America's Next Top Model. Maybe channel that misplaced confidence into your demo day prep? 💅'"
-              : "Example roast style: 'Aww, look who thinks they're qualified to roast! Your attempt at being savage is as weak as your commit history. Focus on your demo day instead of playing mini-me. 😮‍💨'",
-        },
       ],
       max_tokens: 75,
-      temperature: 0.8,
+      temperature: 0.7,
     });
 
     const answer = response.choices[0]?.message?.content;
     if (!answer) {
-      return "Error: Even I'm not savage enough to roast right now! Come back when you've got something worth my energy! 😮‍💨";
+      return "Your commitment is noted, Bhai. Let's continue growing stronger together! 💫";
     }
 
-    // Clean up the response to remove any prefixes like "Roast:" or "Response:"
-    const roast = answer.replace(/^(Roast|Response|Answer):\s*/i, "").trim();
-    return roast;
+    const feedback = answer
+      .replace(/^(Feedback|Response|Answer):\s*/i, "")
+      .trim();
+    return feedback;
   } catch (error) {
-    console.error("Error generating roast with OpenAI:", error);
-    return "Ugh, my roasting circuits are fried from overwork! Come back after my  watermelon break! 🍉😮‍💨";
+    console.error("Error generating feedback with OpenAI:", error);
+    return "Technical difficulties aside, your dedication to the cabal is appreciated. Keep pushing forward! 🔱";
   }
 }

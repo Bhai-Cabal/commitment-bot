@@ -9,9 +9,9 @@ import {
   updateUserCount,
 } from "../firebase/queries";
 import {
-  analyzeAndRoastGymPhoto,
-  analyzeAndRoastMindfulnessPhoto,
-  analyzeAndRoastShippingPhoto,
+  analyzeGymPhoto,
+  analyzeMindfulnessPhoto,
+  analyzeShippingPhoto,
 } from "../openai";
 import { extractMentions, getCurrentDate } from "../utils";
 import { firestore } from "firebase-admin";
@@ -37,27 +37,23 @@ export const handlePhotoSent = async (
 
   if (ctx.chat?.type === "private") {
     await ctx.reply(
-      `Whoa there, solo ${isMindfulness ? "zen seeker" : isShipping ? "coder" : "athlete"}! 🐺 Add me to your crew (group) to start the ultimate ${isMindfulness ? "mindfulness" : isShipping ? "shipping" : "fitness"} party!`,
+      `Namaste ${isMindfulness ? "mindful one" : isShipping ? "builder" : "warrior"}! 🙏 Add me to your Bhai group to share your ${isMindfulness ? "spiritual" : isShipping ? "building" : "strength"} journey with the community.`,
       { reply_parameters: { message_id: msg.message_id } },
     );
     return;
   }
 
+  const username =
+    ctx.from?.first_name ||
+    ctx.from?.username ||
+    (isMindfulness ? "Mindful One" : isShipping ? "Builder" : "Warrior");
   try {
     const userId = ctx.from?.id.toString();
-    const username =
-      ctx.from?.first_name ||
-      ctx.from?.username ||
-      (isMindfulness
-        ? "Mindfulness Enthusiast"
-        : isShipping
-          ? "Code Shipper"
-          : "Fitness Enthusiast");
     const groupId = ctx.chat?.id.toString();
 
     if (!userId || !groupId) {
       await ctx.reply(
-        `Oops! Our ${isMindfulness ? "zen-o-meter" : isShipping ? "ship-o-meter" : "fit-o-meter"} malfunctioned. 🔧 Give it a quick rest and try ${isMindfulness ? "finding your center" : isShipping ? "shipping" : "flexing"} again!`,
+        `A moment of patience, ${username}. Our systems seek alignment. Your dedication is noted. 🙏`,
         { reply_parameters: { message_id: msg.message_id } },
       );
       return;
@@ -68,7 +64,7 @@ export const handlePhotoSent = async (
 
     if (!acquired) {
       await ctx.reply(
-        `Easy there, turbo ${isMindfulness ? "zen seeker" : isShipping ? "shipper" : "athlete"}! 🧘‍♂️💨 We're still processing your last ${isMindfulness ? "moment of zen" : isShipping ? "commit" : "rep"}. Give us a sec to find our balance!`,
+        `Patience, ${username}. Your previous ${isMindfulness ? "practice" : isShipping ? "contribution" : "training"} is being recorded. Honor the process. 🙏`,
         { reply_parameters: { message_id: msg.message_id } },
       );
       return;
@@ -82,7 +78,6 @@ export const handlePhotoSent = async (
         .collection("users")
         .doc(userId);
 
-      // Check user's daily status
       const userDoc = await userRef.get();
       const userData = userDoc.data() || {};
       const dailyData = userData.dailyData || {};
@@ -99,7 +94,7 @@ export const handlePhotoSent = async (
         (!isShipping && !isMindfulness && todayData.gymPhotoUploaded)
       ) {
         await ctx.reply(
-          `Whoa, ${username}! 🏆 You've already logged your daily ${isMindfulness ? "mindfulness" : isShipping ? "shipping" : "fitness"} activity. Save some amazement for tomorrow, you ${isMindfulness ? "enlightened being" : "beast"}!`,
+          `${username}, your dedication is noted! Today's ${isMindfulness ? "practice" : isShipping ? "contribution" : "training"} is recorded. Prepare for tomorrow's growth. 🙏`,
           { reply_parameters: { message_id: msg.message_id } },
         );
         return;
@@ -107,7 +102,7 @@ export const handlePhotoSent = async (
 
       if (todayData.attempts >= 5) {
         await ctx.reply(
-          `Hold up, ${username}! 🛑 You've hit your daily attempt limit. Time to rest those ${isMindfulness ? "thoughts" : isShipping ? "fingers" : "muscles"} and come back more ${isMindfulness ? "centered" : isShipping ? "productive" : "energized"} tomorrow! ${isMindfulness ? "🧘‍♂️😴" : isShipping ? "⌨️😴" : "💪😴"}`,
+          `${username}, your enthusiasm honors us. Take this moment to reflect and return stronger tomorrow. 🙏`,
           { reply_parameters: { message_id: msg.message_id } },
         );
         return;
@@ -121,23 +116,20 @@ export const handlePhotoSent = async (
       const photoBuffer = Buffer.from(response.data, "binary");
 
       let isValidPhoto: boolean;
-      let roast: string;
+      let feedback: string;
 
       if (isMindfulness) {
-        [isValidPhoto, roast] = await analyzeAndRoastMindfulnessPhoto(
+        [isValidPhoto, feedback] = await analyzeMindfulnessPhoto(
           photoBuffer,
           username,
         );
       } else if (isShipping) {
-        [isValidPhoto, roast] = await analyzeAndRoastShippingPhoto(
+        [isValidPhoto, feedback] = await analyzeShippingPhoto(
           photoBuffer,
           username,
         );
       } else {
-        [isValidPhoto, roast] = await analyzeAndRoastGymPhoto(
-          photoBuffer,
-          username,
-        );
+        [isValidPhoto, feedback] = await analyzeGymPhoto(photoBuffer, username);
       }
 
       if (isValidPhoto) {
@@ -152,11 +144,10 @@ export const handlePhotoSent = async (
               db,
               currentDate,
             );
-            roast += `\n\nLook at you, spreading the zen! ${mentionedUsers.join(", ")} ${mentionedUsers.length > 1 ? "are" : "is"} now part of your mindfulness circle! 🧘‍♂️🧘‍♀️`;
+            feedback += `\n\nUnity strengthens us! 🙏 ${mentionedUsers.join(", ")} ${mentionedUsers.length > 1 ? "join" : "joins"} your mindful path.`;
           }
         }
       } else {
-        // Only increment attempts for invalid photos
         await userRef.set(
           {
             dailyData: {
@@ -171,7 +162,7 @@ export const handlePhotoSent = async (
         );
       }
 
-      await ctx.reply(roast, {
+      await ctx.reply(feedback, {
         reply_parameters: { message_id: msg.message_id },
       });
     } finally {
@@ -179,11 +170,11 @@ export const handlePhotoSent = async (
     }
   } catch (error) {
     console.error(
-      `Error processing ${isMindfulness ? "mindfulness" : isShipping ? "shipping" : "fitness"} activity:`,
+      `Error processing ${isMindfulness ? "mindfulness" : isShipping ? "building" : "training"} activity:`,
       error,
     );
     await ctx.reply(
-      `Oof! 😅 Looks like our bot's ${isMindfulness ? "zen" : isShipping ? "code" : "workout"} routine hit a snag. Let's take a quick break and try that again!`,
+      `${username}, a moment of technical reflection is needed. Your commitment is valued. 🙏`,
       { reply_parameters: { message_id: msg.message_id } },
     );
   }
@@ -192,7 +183,7 @@ export const handlePhotoSent = async (
 export const handleGetRanking = async (ctx: any, db: firestore.Firestore) => {
   if (ctx.chat.type === "private") {
     ctx.reply(
-      "Hey fitness champion, this is a team sport! 🏆 Use this command in your Bhai Cabal group to see who's the ultimate fitness guru!",
+      "Namaste warrior! Join us in a Bhai group to witness our collective strength journey. 🙏",
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
     return;
@@ -203,9 +194,9 @@ export const handleGetRanking = async (ctx: any, db: firestore.Firestore) => {
     const ranking = await getRanking(groupId, db);
     ctx.reply(ranking);
   } catch (error) {
-    console.error("Error getting fitness ranking:", error);
+    console.error("Error getting strength ranking:", error);
     ctx.reply(
-      "Uh-oh! Our fit-o-meter is feeling the burn. 😅 Take a breather and try checking the rankings again in a moment!",
+      "A moment of patience, Bhais. Our strength metrics seek alignment. 🙏",
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
   }
@@ -217,7 +208,7 @@ export const handleGetShippingRanking = async (
 ) => {
   if (ctx.chat.type === "private") {
     ctx.reply(
-      "Hey code shipper, this is a team effort! 🚢 Use this command in your Bhai Cabal group to see who's the ultimate shipping champion!",
+      "Namaste builder! Join us in a Bhai group to celebrate our collective progress. 🙏",
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
     return;
@@ -230,7 +221,7 @@ export const handleGetShippingRanking = async (
   } catch (error) {
     console.error("Error getting shipping ranking:", error);
     ctx.reply(
-      "Uh-oh! Our ship-o-meter is experiencing some turbulence. 😅 Take a moment to debug and try checking the rankings again soon!",
+      "A moment of patience, Bhais. Our building metrics seek alignment. 🙏",
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
   }
@@ -242,7 +233,7 @@ export const handleGetMindfulnessRanking = async (
 ) => {
   if (ctx.chat.type === "private") {
     ctx.reply(
-      "Hey mindfulness guru, this is a group journey! 🧘‍♂️ Use this command in your Bhai Cabal group to see who's the ultimate zen master!",
+      "Namaste mindful one! Join us in a Bhai group to share our spiritual journey. 🙏",
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
     return;
@@ -255,7 +246,7 @@ export const handleGetMindfulnessRanking = async (
   } catch (error) {
     console.error("Error getting mindfulness ranking:", error);
     ctx.reply(
-      "Uh-oh! Our zen-o-meter is feeling a bit scattered. 😅 Take a deep breath and try checking the rankings again in a moment!",
+      "A moment of patience, Bhais. Our spiritual metrics seek alignment. 🙏",
       { reply_parameters: { message_id: ctx.message.message_id } },
     );
   }
@@ -263,17 +254,17 @@ export const handleGetMindfulnessRanking = async (
 
 export async function handleBeZen(ctx: Context, db: firestore.Firestore) {
   const userId = ctx.from?.id.toString();
-  const username = ctx.from?.username || ctx.from?.first_name || "Anonymous";
+  const username = ctx.from?.username || ctx.from?.first_name || "Mindful One";
   const groupId = ctx.chat?.id.toString();
 
   if (!userId || !groupId) {
-    await ctx.reply("Oops! Something went wrong. Please try again later.");
+    await ctx.reply("A moment of patience. Our systems seek alignment. 🙏");
     return;
   }
 
   if (ctx?.chat?.type === "private") {
     await ctx.reply(
-      "Hey there, zen seeker! 🧘‍♂️ Add me to a group to start your mindfulness journey with friends!",
+      "Namaste seeker! Join us in a Bhai group to begin our mindful journey together. 🙏",
     );
     return;
   }
@@ -295,15 +286,17 @@ export async function handleBeZen(ctx: Context, db: firestore.Firestore) {
         shippingCount: 0,
       });
       await ctx.reply(
-        `Welcome to the zen circle, ${username}! 🧘‍♂️✨ You're now ready to log your mindfulness moments with /zenned.`,
+        `Welcome to the path, ${username}! Share your mindful moments with /zenned. 🙏✨`,
       );
     } else {
       await ctx.reply(
-        `You're already on the path to enlightenment, ${username}! 🌟 Keep using /zenned to log your mindfulness moments.`,
+        `${username}, your spiritual journey continues. Share your practice with /zenned. 🙏`,
       );
     }
   } catch (error) {
     console.error("Error in handleBeZen:", error);
-    await ctx.reply("Oops! Our zen master stumbled. Please try again later.");
+    await ctx.reply(
+      "A moment of technical alignment needed. Please try again. 🙏",
+    );
   }
 }
